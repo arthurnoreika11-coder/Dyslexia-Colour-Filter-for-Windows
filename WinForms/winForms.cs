@@ -16,7 +16,8 @@ namespace WinForms
 
         private NotifyIcon trayIcon;
         private MenuItem enabledMenuItem;
-        private string selectedColour;
+        private SettingsForm settingsForm;
+        private Color selectedColour;
         private string settingsFilePath;
         private bool startEnabled;
 
@@ -28,7 +29,7 @@ namespace WinForms
 
         public ColourFilterForm()
         {
-            selectedColour = "Yellow";
+            selectedColour = Color.FromArgb(255, 242, 168);
             settingsFilePath = Path.Combine(Application.StartupPath, "filter-settings.txt");
             startEnabled = true;
 
@@ -59,15 +60,9 @@ namespace WinForms
             enabledMenuItem.Checked = startEnabled;
 
             ContextMenu trayMenu = new ContextMenu();
+            trayMenu.MenuItems.Add("Settings...", ShowSettings);
+            trayMenu.MenuItems.Add("-");
             trayMenu.MenuItems.Add(enabledMenuItem);
-            trayMenu.MenuItems.Add("-");
-            trayMenu.MenuItems.Add("Yellow", SetYellow);
-            trayMenu.MenuItems.Add("Blue", SetBlue);
-            trayMenu.MenuItems.Add("Green", SetGreen);
-            trayMenu.MenuItems.Add("-");
-            trayMenu.MenuItems.Add("Opacity 25%", SetOpacity25);
-            trayMenu.MenuItems.Add("Opacity 50%", SetOpacity50);
-            trayMenu.MenuItems.Add("Opacity 75%", SetOpacity75);
             trayMenu.MenuItems.Add("-");
             trayMenu.MenuItems.Add("Exit", ExitApp);
 
@@ -80,65 +75,76 @@ namespace WinForms
 
         private void ToggleEnabled(object sender, EventArgs e)
         {
-            enabledMenuItem.Checked = !enabledMenuItem.Checked;
-            Visible = enabledMenuItem.Checked;
-            SaveSettings();
+            SetEnabled(!enabledMenuItem.Checked);
         }
 
-        private void SetYellow(object sender, EventArgs e)
+        private void ShowSettings(object sender, EventArgs e)
         {
-            selectedColour = "Yellow";
+            if (settingsForm == null || settingsForm.IsDisposed)
+            {
+                settingsForm = new SettingsForm(this);
+            }
+
+            settingsForm.Show();
+            settingsForm.BringToFront();
+        }
+
+        public Color FilterColour
+        {
+            get
+            {
+                return selectedColour;
+            }
+        }
+
+        public int OpacityPercent
+        {
+            get
+            {
+                return Convert.ToInt32(Opacity * 100);
+            }
+        }
+
+        public bool FilterEnabled
+        {
+            get
+            {
+                return enabledMenuItem != null && enabledMenuItem.Checked;
+            }
+        }
+
+        public void SetFilterColour(Color colour)
+        {
+            selectedColour = colour;
             ApplySettings();
             SaveSettings();
         }
 
-        private void SetBlue(object sender, EventArgs e)
+        public void SetOpacityPercent(int percent)
         {
-            selectedColour = "Blue";
-            ApplySettings();
+            if (percent < 10)
+            {
+                percent = 10;
+            }
+            else if (percent > 100)
+            {
+                percent = 100;
+            }
+
+            Opacity = percent / 100.0;
             SaveSettings();
         }
 
-        private void SetGreen(object sender, EventArgs e)
+        public void SetEnabled(bool enabled)
         {
-            selectedColour = "Green";
-            ApplySettings();
-            SaveSettings();
-        }
-
-        private void SetOpacity25(object sender, EventArgs e)
-        {
-            Opacity = 0.25;
-            SaveSettings();
-        }
-
-        private void SetOpacity50(object sender, EventArgs e)
-        {
-            Opacity = 0.5;
-            SaveSettings();
-        }
-
-        private void SetOpacity75(object sender, EventArgs e)
-        {
-            Opacity = 0.75;
+            enabledMenuItem.Checked = enabled;
+            Visible = enabled;
             SaveSettings();
         }
 
         private void ApplySettings()
         {
-            if (selectedColour == "Blue")
-            {
-                BackColor = Color.FromArgb(180, 220, 255);
-            }
-            else if (selectedColour == "Green")
-            {
-                BackColor = Color.FromArgb(200, 255, 200);
-            }
-            else
-            {
-                BackColor = Color.FromArgb(255, 242, 168);
-                selectedColour = "Yellow";
-            }
+            BackColor = selectedColour;
 
             if (enabledMenuItem != null)
             {
@@ -171,7 +177,14 @@ namespace WinForms
 
                 if (key == "Colour")
                 {
-                    selectedColour = value;
+                    try
+                    {
+                        selectedColour = ColorTranslator.FromHtml(value);
+                    }
+                    catch
+                    {
+                        selectedColour = Color.FromArgb(255, 242, 168);
+                    }
                 }
                 else if (key == "Opacity")
                 {
@@ -202,7 +215,7 @@ namespace WinForms
 
             string[] lines = new string[]
             {
-                "Colour=" + selectedColour,
+                "Colour=" + ColorTranslator.ToHtml(selectedColour),
                 "Opacity=" + Opacity.ToString(CultureInfo.InvariantCulture),
                 "Enabled=" + enabled
             };
@@ -217,10 +230,173 @@ namespace WinForms
 
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
+            if (settingsForm != null && !settingsForm.IsDisposed)
+            {
+                settingsForm.CloseForAppExit();
+            }
+
             trayIcon.Visible = false;
             trayIcon.Dispose();
 
             base.OnFormClosed(e);
+        }
+    }
+
+    public class SettingsForm : Form
+    {
+        private ColourFilterForm filterForm;
+        private CheckBox enabledCheckBox;
+        private Button colourButton;
+        private Panel colourPreview;
+        private TrackBar opacitySlider;
+        private Label opacityValueLabel;
+        private bool isLoading;
+        private bool allowClose;
+
+        public SettingsForm(ColourFilterForm filterForm)
+        {
+            this.filterForm = filterForm;
+
+            Text = "Dyslexia Colour Filter Settings";
+            StartPosition = FormStartPosition.CenterScreen;
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            MaximizeBox = false;
+            MinimizeBox = false;
+            ClientSize = new Size(330, 190);
+
+            CreateControls();
+            LoadCurrentSettings();
+        }
+
+        private void CreateControls()
+        {
+            enabledCheckBox = new CheckBox();
+            enabledCheckBox.Text = "Enabled";
+            enabledCheckBox.Location = new Point(20, 20);
+            enabledCheckBox.AutoSize = true;
+            enabledCheckBox.CheckedChanged += EnabledCheckBox_CheckedChanged;
+            Controls.Add(enabledCheckBox);
+
+            Label colourLabel = new Label();
+            colourLabel.Text = "Colour";
+            colourLabel.Location = new Point(20, 58);
+            colourLabel.AutoSize = true;
+            Controls.Add(colourLabel);
+
+            colourPreview = new Panel();
+            colourPreview.Location = new Point(85, 55);
+            colourPreview.Size = new Size(40, 24);
+            colourPreview.BorderStyle = BorderStyle.FixedSingle;
+            Controls.Add(colourPreview);
+
+            colourButton = new Button();
+            colourButton.Text = "Choose...";
+            colourButton.Location = new Point(140, 52);
+            colourButton.Size = new Size(90, 30);
+            colourButton.Click += ColourButton_Click;
+            Controls.Add(colourButton);
+
+            Label opacityLabel = new Label();
+            opacityLabel.Text = "Opacity";
+            opacityLabel.Location = new Point(20, 105);
+            opacityLabel.AutoSize = true;
+            Controls.Add(opacityLabel);
+
+            opacitySlider = new TrackBar();
+            opacitySlider.Location = new Point(85, 95);
+            opacitySlider.Size = new Size(170, 45);
+            opacitySlider.Minimum = 10;
+            opacitySlider.Maximum = 100;
+            opacitySlider.TickFrequency = 10;
+            opacitySlider.ValueChanged += OpacitySlider_ValueChanged;
+            Controls.Add(opacitySlider);
+
+            opacityValueLabel = new Label();
+            opacityValueLabel.Location = new Point(265, 105);
+            opacityValueLabel.Size = new Size(50, 20);
+            Controls.Add(opacityValueLabel);
+
+            Button closeButton = new Button();
+            closeButton.Text = "Close";
+            closeButton.Location = new Point(220, 145);
+            closeButton.Size = new Size(90, 30);
+            closeButton.Click += CloseButton_Click;
+            Controls.Add(closeButton);
+        }
+
+        private void LoadCurrentSettings()
+        {
+            isLoading = true;
+            enabledCheckBox.Checked = filterForm.FilterEnabled;
+            colourPreview.BackColor = filterForm.FilterColour;
+            opacitySlider.Value = filterForm.OpacityPercent;
+            UpdateOpacityLabel();
+            isLoading = false;
+        }
+
+        private void EnabledCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (isLoading)
+            {
+                return;
+            }
+
+            filterForm.SetEnabled(enabledCheckBox.Checked);
+        }
+
+        private void ColourButton_Click(object sender, EventArgs e)
+        {
+            ColorDialog colourDialog = new ColorDialog();
+            colourDialog.Color = filterForm.FilterColour;
+            colourDialog.FullOpen = true;
+
+            if (colourDialog.ShowDialog(this) == DialogResult.OK)
+            {
+                colourPreview.BackColor = colourDialog.Color;
+                filterForm.SetFilterColour(colourDialog.Color);
+            }
+
+            colourDialog.Dispose();
+        }
+
+        private void OpacitySlider_ValueChanged(object sender, EventArgs e)
+        {
+            UpdateOpacityLabel();
+
+            if (isLoading)
+            {
+                return;
+            }
+
+            filterForm.SetOpacityPercent(opacitySlider.Value);
+        }
+
+        private void UpdateOpacityLabel()
+        {
+            opacityValueLabel.Text = opacitySlider.Value + "%";
+        }
+
+        private void CloseButton_Click(object sender, EventArgs e)
+        {
+            Hide();
+        }
+
+        public void CloseForAppExit()
+        {
+            allowClose = true;
+            Close();
+        }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            if (!allowClose && e.CloseReason == CloseReason.UserClosing)
+            {
+                e.Cancel = true;
+                Hide();
+                return;
+            }
+
+            base.OnFormClosing(e);
         }
     }
 
