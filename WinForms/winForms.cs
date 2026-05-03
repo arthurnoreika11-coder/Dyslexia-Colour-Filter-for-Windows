@@ -1,5 +1,7 @@
 using System;
 using System.Drawing;
+using System.Globalization;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
@@ -14,6 +16,9 @@ namespace WinForms
 
         private NotifyIcon trayIcon;
         private MenuItem enabledMenuItem;
+        private string selectedColour;
+        private string settingsFilePath;
+        private bool startEnabled;
 
         [DllImport("user32.dll")]
         private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
@@ -23,15 +28,18 @@ namespace WinForms
 
         public ColourFilterForm()
         {
-            BackColor = Color.FromArgb(255, 242, 168);
-            Opacity = 0.5;
+            selectedColour = "Yellow";
+            settingsFilePath = Path.Combine(Application.StartupPath, "filter-settings.txt");
+            startEnabled = true;
 
             FormBorderStyle = FormBorderStyle.None;
             WindowState = FormWindowState.Maximized;
             TopMost = true;
             ShowInTaskbar = false;
 
+            LoadSettings();
             CreateTrayIcon();
+            ApplySettings();
         }
 
         protected override void OnShown(EventArgs e)
@@ -41,12 +49,14 @@ namespace WinForms
             int style = GetWindowLong(Handle, GwlExStyle);
             style = style | WsExLayered | WsExTransparent | WsExToolWindow;
             SetWindowLong(Handle, GwlExStyle, style);
+
+            ApplySettings();
         }
 
         private void CreateTrayIcon()
         {
             enabledMenuItem = new MenuItem("Enabled", ToggleEnabled);
-            enabledMenuItem.Checked = true;
+            enabledMenuItem.Checked = startEnabled;
 
             ContextMenu trayMenu = new ContextMenu();
             trayMenu.MenuItems.Add(enabledMenuItem);
@@ -72,36 +82,132 @@ namespace WinForms
         {
             enabledMenuItem.Checked = !enabledMenuItem.Checked;
             Visible = enabledMenuItem.Checked;
+            SaveSettings();
         }
 
         private void SetYellow(object sender, EventArgs e)
         {
-            BackColor = Color.FromArgb(255, 242, 168);
+            selectedColour = "Yellow";
+            ApplySettings();
+            SaveSettings();
         }
 
         private void SetBlue(object sender, EventArgs e)
         {
-            BackColor = Color.FromArgb(180, 220, 255);
+            selectedColour = "Blue";
+            ApplySettings();
+            SaveSettings();
         }
 
         private void SetGreen(object sender, EventArgs e)
         {
-            BackColor = Color.FromArgb(200, 255, 200);
+            selectedColour = "Green";
+            ApplySettings();
+            SaveSettings();
         }
 
         private void SetOpacity25(object sender, EventArgs e)
         {
             Opacity = 0.25;
+            SaveSettings();
         }
 
         private void SetOpacity50(object sender, EventArgs e)
         {
             Opacity = 0.5;
+            SaveSettings();
         }
 
         private void SetOpacity75(object sender, EventArgs e)
         {
             Opacity = 0.75;
+            SaveSettings();
+        }
+
+        private void ApplySettings()
+        {
+            if (selectedColour == "Blue")
+            {
+                BackColor = Color.FromArgb(180, 220, 255);
+            }
+            else if (selectedColour == "Green")
+            {
+                BackColor = Color.FromArgb(200, 255, 200);
+            }
+            else
+            {
+                BackColor = Color.FromArgb(255, 242, 168);
+                selectedColour = "Yellow";
+            }
+
+            if (enabledMenuItem != null)
+            {
+                Visible = enabledMenuItem.Checked;
+            }
+        }
+
+        private void LoadSettings()
+        {
+            Opacity = 0.5;
+
+            if (!File.Exists(settingsFilePath))
+            {
+                return;
+            }
+
+            string[] lines = File.ReadAllLines(settingsFilePath);
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string[] parts = lines[i].Split(new char[] { '=' }, 2);
+
+                if (parts.Length != 2)
+                {
+                    continue;
+                }
+
+                string key = parts[0];
+                string value = parts[1];
+
+                if (key == "Colour")
+                {
+                    selectedColour = value;
+                }
+                else if (key == "Opacity")
+                {
+                    double opacity;
+                    if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out opacity))
+                    {
+                        if (opacity >= 0.1 && opacity <= 1.0)
+                        {
+                            Opacity = opacity;
+                        }
+                    }
+                }
+                else if (key == "Enabled")
+                {
+                    startEnabled = value == "True";
+                }
+            }
+        }
+
+        private void SaveSettings()
+        {
+            string enabled = "True";
+
+            if (enabledMenuItem != null && !enabledMenuItem.Checked)
+            {
+                enabled = "False";
+            }
+
+            string[] lines = new string[]
+            {
+                "Colour=" + selectedColour,
+                "Opacity=" + Opacity.ToString(CultureInfo.InvariantCulture),
+                "Enabled=" + enabled
+            };
+
+            File.WriteAllLines(settingsFilePath, lines);
         }
 
         private void ExitApp(object sender, EventArgs e)
