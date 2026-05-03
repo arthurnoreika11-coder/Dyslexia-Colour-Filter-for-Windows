@@ -11,22 +11,15 @@ namespace WinForms
         private const int WsExTransparent = 0x20;
         private const int WsExToolWindow = 0x80;
         private const int WsExLayered = 0x80000;
-        private const int HotkeyId = 1;
-        private const int WmHotkey = 0x0312;
-        private const int ModAlt = 0x0001;
-        private const int ModControl = 0x0002;
+
+        private NotifyIcon trayIcon;
+        private MenuItem enabledMenuItem;
 
         [DllImport("user32.dll")]
         private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
 
         [DllImport("user32.dll")]
         private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
-
-        [DllImport("user32.dll")]
-        private static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, Keys vk);
-
-        [DllImport("user32.dll")]
-        private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
         public ColourFilterForm()
         {
@@ -37,6 +30,8 @@ namespace WinForms
             WindowState = FormWindowState.Maximized;
             TopMost = true;
             ShowInTaskbar = false;
+
+            CreateTrayIcon();
         }
 
         protected override void OnShown(EventArgs e)
@@ -46,23 +41,79 @@ namespace WinForms
             int style = GetWindowLong(Handle, GwlExStyle);
             style = style | WsExLayered | WsExTransparent | WsExToolWindow;
             SetWindowLong(Handle, GwlExStyle, style);
-
-            RegisterHotKey(Handle, HotkeyId, ModControl | ModAlt, Keys.Q);
         }
 
-        protected override void WndProc(ref Message m)
+        private void CreateTrayIcon()
         {
-            if (m.Msg == WmHotkey && m.WParam.ToInt32() == HotkeyId)
-            {
-                Close();
-            }
+            enabledMenuItem = new MenuItem("Enabled", ToggleEnabled);
+            enabledMenuItem.Checked = true;
 
-            base.WndProc(ref m);
+            ContextMenu trayMenu = new ContextMenu();
+            trayMenu.MenuItems.Add(enabledMenuItem);
+            trayMenu.MenuItems.Add("-");
+            trayMenu.MenuItems.Add("Yellow", SetYellow);
+            trayMenu.MenuItems.Add("Blue", SetBlue);
+            trayMenu.MenuItems.Add("Green", SetGreen);
+            trayMenu.MenuItems.Add("-");
+            trayMenu.MenuItems.Add("Opacity 25%", SetOpacity25);
+            trayMenu.MenuItems.Add("Opacity 50%", SetOpacity50);
+            trayMenu.MenuItems.Add("Opacity 75%", SetOpacity75);
+            trayMenu.MenuItems.Add("-");
+            trayMenu.MenuItems.Add("Exit", ExitApp);
+
+            trayIcon = new NotifyIcon();
+            trayIcon.Icon = SystemIcons.Application;
+            trayIcon.Text = "Dyslexia Colour Filter";
+            trayIcon.ContextMenu = trayMenu;
+            trayIcon.Visible = true;
+        }
+
+        private void ToggleEnabled(object sender, EventArgs e)
+        {
+            enabledMenuItem.Checked = !enabledMenuItem.Checked;
+            Visible = enabledMenuItem.Checked;
+        }
+
+        private void SetYellow(object sender, EventArgs e)
+        {
+            BackColor = Color.FromArgb(255, 242, 168);
+        }
+
+        private void SetBlue(object sender, EventArgs e)
+        {
+            BackColor = Color.FromArgb(180, 220, 255);
+        }
+
+        private void SetGreen(object sender, EventArgs e)
+        {
+            BackColor = Color.FromArgb(200, 255, 200);
+        }
+
+        private void SetOpacity25(object sender, EventArgs e)
+        {
+            Opacity = 0.25;
+        }
+
+        private void SetOpacity50(object sender, EventArgs e)
+        {
+            Opacity = 0.5;
+        }
+
+        private void SetOpacity75(object sender, EventArgs e)
+        {
+            Opacity = 0.75;
+        }
+
+        private void ExitApp(object sender, EventArgs e)
+        {
+            Close();
         }
 
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
-            UnregisterHotKey(Handle, HotkeyId);
+            trayIcon.Visible = false;
+            trayIcon.Dispose();
+
             base.OnFormClosed(e);
         }
     }
