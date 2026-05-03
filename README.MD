@@ -1,1 +1,1 @@
-*BOLD*Dyslexia Colour Filter for Windows*BOLD*
+#Dyslexia Colour Filter for Windows
