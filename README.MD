@@ -12,17 +12,17 @@ This is not intended to bypass workplace IT controls. If used on a work laptop, 
 
 ## Current Status
 
-The repository currently contains two working learning prototypes:
+The repository currently contains the current C# WinForms prototype plus supporting learning notes:
 
-- `DyslexiaFilter.ps1`
 - `WinForms/winForms.cs`
 
-They demonstrate several important behaviours:
+The C# prototype demonstrates several important behaviours:
 
 - transparent colour overlay
 - click-through overlay
 - tray icon
-- settings window
+- modern settings window
+- preset colour swatches
 - colour picker
 - opacity slider
 - enable/disable toggle
@@ -34,11 +34,7 @@ The long-term learning plan still aims toward a modern WPF version with cleaner 
 
 ### PowerShell Prototype
 
-On Windows, from the repository root:
-
-```powershell
-powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File .\DyslexiaFilter.ps1
-```
+`DyslexiaFilter.ps1` is currently a milestone placeholder. The main working prototype is the C# WinForms app below.
 
 ### C# WinForms Prototype
 
