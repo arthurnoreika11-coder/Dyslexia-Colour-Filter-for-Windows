@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -251,7 +252,7 @@ namespace WinForms
         private Panel colourPreview;
         private TrackBar opacitySlider;
         private Label opacityValueLabel;
-        private Button[] swatchButtons;
+        private ColourDiskButton[] swatchButtons;
         private ToolTip toolTip;
         private bool isLoading;
         private bool allowClose;
@@ -265,8 +266,8 @@ namespace WinForms
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
-            ClientSize = new Size(430, 320);
-            BackColor = Color.FromArgb(248, 249, 251);
+            ClientSize = new Size(460, 330);
+            BackColor = Color.FromArgb(245, 245, 247);
             Font = new Font("Segoe UI", 9F, FontStyle.Regular);
             TopMost = true;
 
@@ -278,37 +279,37 @@ namespace WinForms
         {
             toolTip = new ToolTip();
 
-            Label titleLabel = CreateLabel("Colour filter", 24, 20, 220, 28, 14F, FontStyle.Bold);
+            Label titleLabel = CreateLabel("Dyslexia Colour Filter", 28, 22, 300, 30, 15F, FontStyle.Bold);
             Controls.Add(titleLabel);
 
-            Label introLabel = CreateLabel("Choose a comfortable tint and strength for reading.", 24, 50, 360, 22, 9F, FontStyle.Regular);
-            introLabel.ForeColor = Color.FromArgb(88, 95, 105);
+            Label introLabel = CreateLabel("Choose a comfortable tint and strength for reading.", 28, 54, 380, 22, 9F, FontStyle.Regular);
+            introLabel.ForeColor = Color.FromArgb(110, 110, 115);
             Controls.Add(introLabel);
 
             enabledCheckBox = new CheckBox();
             enabledCheckBox.Text = "Enabled";
-            enabledCheckBox.Location = new Point(24, 86);
+            enabledCheckBox.Location = new Point(28, 92);
             enabledCheckBox.AutoSize = true;
             enabledCheckBox.FlatStyle = FlatStyle.System;
             enabledCheckBox.CheckedChanged += EnabledCheckBox_CheckedChanged;
             Controls.Add(enabledCheckBox);
 
-            Label colourLabel = CreateSectionLabel("Colour", 24, 122);
+            Label colourLabel = CreateSectionLabel("Tint", 28, 132);
             Controls.Add(colourLabel);
 
             colourPreview = new Panel();
-            colourPreview.Location = new Point(346, 117);
-            colourPreview.Size = new Size(48, 30);
+            colourPreview.Location = new Point(380, 128);
+            colourPreview.Size = new Size(42, 28);
             colourPreview.BorderStyle = BorderStyle.FixedSingle;
             Controls.Add(colourPreview);
 
-            Button creamSwatch = CreateSwatchButton("Cream", Color.FromArgb(255, 242, 168), 24, 152);
-            Button pinkSwatch = CreateSwatchButton("Pink", Color.FromArgb(255, 215, 229), 88, 152);
-            Button blueSwatch = CreateSwatchButton("Blue", Color.FromArgb(180, 220, 255), 152, 152);
-            Button mintSwatch = CreateSwatchButton("Mint", Color.FromArgb(200, 255, 200), 216, 152);
-            Button greySwatch = CreateSwatchButton("Grey", Color.FromArgb(216, 221, 230), 280, 152);
+            ColourDiskButton creamSwatch = CreateSwatchButton("Cream", Color.FromArgb(255, 242, 168), 28, 166);
+            ColourDiskButton pinkSwatch = CreateSwatchButton("Rose", Color.FromArgb(255, 215, 229), 90, 166);
+            ColourDiskButton blueSwatch = CreateSwatchButton("Sky", Color.FromArgb(180, 220, 255), 152, 166);
+            ColourDiskButton mintSwatch = CreateSwatchButton("Mint", Color.FromArgb(200, 255, 200), 214, 166);
+            ColourDiskButton greySwatch = CreateSwatchButton("Mist", Color.FromArgb(216, 221, 230), 276, 166);
 
-            swatchButtons = new Button[]
+            swatchButtons = new ColourDiskButton[]
             {
                 creamSwatch,
                 pinkSwatch,
@@ -324,19 +325,19 @@ namespace WinForms
 
             colourButton = new Button();
             colourButton.Text = "Custom";
-            colourButton.Location = new Point(344, 152);
-            colourButton.Size = new Size(62, 34);
+            colourButton.Location = new Point(356, 171);
+            colourButton.Size = new Size(72, 32);
             StyleSecondaryButton(colourButton);
             colourButton.Click += ColourButton_Click;
             toolTip.SetToolTip(colourButton, "Choose custom colour");
             Controls.Add(colourButton);
 
-            Label opacityLabel = CreateSectionLabel("Opacity", 24, 214);
+            Label opacityLabel = CreateSectionLabel("Opacity", 28, 230);
             Controls.Add(opacityLabel);
 
             opacitySlider = new TrackBar();
-            opacitySlider.Location = new Point(24, 240);
-            opacitySlider.Size = new Size(300, 45);
+            opacitySlider.Location = new Point(28, 256);
+            opacitySlider.Size = new Size(320, 45);
             opacitySlider.Minimum = 10;
             opacitySlider.Maximum = 100;
             opacitySlider.TickFrequency = 10;
@@ -344,16 +345,16 @@ namespace WinForms
             Controls.Add(opacitySlider);
 
             opacityValueLabel = new Label();
-            opacityValueLabel.Location = new Point(338, 246);
+            opacityValueLabel.Location = new Point(366, 262);
             opacityValueLabel.Size = new Size(56, 24);
             opacityValueLabel.TextAlign = ContentAlignment.MiddleRight;
             opacityValueLabel.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
-            opacityValueLabel.ForeColor = Color.FromArgb(49, 56, 66);
+            opacityValueLabel.ForeColor = Color.FromArgb(29, 29, 31);
             Controls.Add(opacityValueLabel);
 
             closeButton = new Button();
             closeButton.Text = "Close";
-            closeButton.Location = new Point(316, 282);
+            closeButton.Location = new Point(338, 294);
             closeButton.Size = new Size(90, 30);
             StylePrimaryButton(closeButton);
             closeButton.Click += CloseButton_Click;
@@ -421,33 +422,27 @@ namespace WinForms
             label.Location = new Point(x, y);
             label.Size = new Size(width, height);
             label.Font = new Font("Segoe UI", size, style);
-            label.ForeColor = Color.FromArgb(34, 40, 49);
+            label.ForeColor = Color.FromArgb(29, 29, 31);
             return label;
         }
 
         private Label CreateSectionLabel(string text, int x, int y)
         {
             Label label = CreateLabel(text, x, y, 160, 22, 9.5F, FontStyle.Bold);
-            label.ForeColor = Color.FromArgb(58, 65, 75);
+            label.ForeColor = Color.FromArgb(72, 72, 74);
             return label;
         }
 
-        private Button CreateSwatchButton(string name, Color colour, int x, int y)
+        private ColourDiskButton CreateSwatchButton(string name, Color colour, int x, int y)
         {
-            Button button = new Button();
+            ColourDiskButton button = new ColourDiskButton();
             button.AccessibleName = name;
             button.Tag = colour;
+            button.DiskColour = colour;
             button.Location = new Point(x, y);
-            button.Size = new Size(48, 34);
-            button.BackColor = colour;
-            button.FlatStyle = FlatStyle.Flat;
-            button.FlatAppearance.BorderSize = 2;
-            button.FlatAppearance.BorderColor = Color.FromArgb(205, 211, 220);
+            button.Size = new Size(46, 46);
             button.Text = "";
-            button.Cursor = Cursors.Hand;
             button.Click += SwatchButton_Click;
-            button.MouseEnter += SwatchButton_MouseEnter;
-            button.MouseLeave += SwatchButton_MouseLeave;
             toolTip.SetToolTip(button, name);
             return button;
         }
@@ -455,7 +450,7 @@ namespace WinForms
         private void StylePrimaryButton(Button button)
         {
             button.FlatStyle = FlatStyle.Flat;
-            button.BackColor = Color.FromArgb(39, 95, 118);
+            button.BackColor = Color.FromArgb(0, 122, 255);
             button.ForeColor = Color.White;
             button.FlatAppearance.BorderSize = 0;
             button.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
@@ -466,8 +461,8 @@ namespace WinForms
         {
             button.FlatStyle = FlatStyle.Flat;
             button.BackColor = Color.White;
-            button.ForeColor = Color.FromArgb(39, 95, 118);
-            button.FlatAppearance.BorderColor = Color.FromArgb(181, 194, 204);
+            button.ForeColor = Color.FromArgb(0, 122, 255);
+            button.FlatAppearance.BorderColor = Color.FromArgb(210, 210, 215);
             button.FlatAppearance.BorderSize = 1;
             button.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             button.Cursor = Cursors.Hand;
@@ -475,7 +470,7 @@ namespace WinForms
 
         private void SwatchButton_Click(object sender, EventArgs e)
         {
-            Button button = sender as Button;
+            ColourDiskButton button = sender as ColourDiskButton;
 
             if (button == null)
             {
@@ -485,21 +480,6 @@ namespace WinForms
             Color colour = (Color)button.Tag;
             colourPreview.BackColor = colour;
             filterForm.SetFilterColour(colour);
-            UpdateSelectedSwatch();
-        }
-
-        private void SwatchButton_MouseEnter(object sender, EventArgs e)
-        {
-            Button button = sender as Button;
-
-            if (button != null && button.FlatAppearance.BorderColor != Color.FromArgb(39, 95, 118))
-            {
-                button.FlatAppearance.BorderColor = Color.FromArgb(135, 151, 164);
-            }
-        }
-
-        private void SwatchButton_MouseLeave(object sender, EventArgs e)
-        {
             UpdateSelectedSwatch();
         }
 
@@ -515,17 +495,7 @@ namespace WinForms
             for (int i = 0; i < swatchButtons.Length; i++)
             {
                 Color swatchColour = (Color)swatchButtons[i].Tag;
-
-                if (swatchColour.ToArgb() == selected.ToArgb())
-                {
-                    swatchButtons[i].FlatAppearance.BorderColor = Color.FromArgb(39, 95, 118);
-                    swatchButtons[i].FlatAppearance.BorderSize = 3;
-                }
-                else
-                {
-                    swatchButtons[i].FlatAppearance.BorderColor = Color.FromArgb(205, 211, 220);
-                    swatchButtons[i].FlatAppearance.BorderSize = 2;
-                }
+                swatchButtons[i].IsSelected = swatchColour.ToArgb() == selected.ToArgb();
             }
         }
 
@@ -550,6 +520,94 @@ namespace WinForms
             }
 
             base.OnFormClosing(e);
+        }
+    }
+
+    public class ColourDiskButton : Button
+    {
+        private bool isHovered;
+        private bool isSelected;
+        private Color diskColour;
+
+        public ColourDiskButton()
+        {
+            diskColour = Color.White;
+            SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, true);
+            Cursor = Cursors.Hand;
+            FlatStyle = FlatStyle.Flat;
+            FlatAppearance.BorderSize = 0;
+            TabStop = true;
+        }
+
+        public Color DiskColour
+        {
+            get
+            {
+                return diskColour;
+            }
+            set
+            {
+                diskColour = value;
+                Invalidate();
+            }
+        }
+
+        public bool IsSelected
+        {
+            get
+            {
+                return isSelected;
+            }
+            set
+            {
+                isSelected = value;
+                Invalidate();
+            }
+        }
+
+        protected override void OnMouseEnter(EventArgs e)
+        {
+            isHovered = true;
+            Invalidate();
+            base.OnMouseEnter(e);
+        }
+
+        protected override void OnMouseLeave(EventArgs e)
+        {
+            isHovered = false;
+            Invalidate();
+            base.OnMouseLeave(e);
+        }
+
+        protected override void OnPaint(PaintEventArgs pevent)
+        {
+            Graphics graphics = pevent.Graphics;
+            graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            Color backgroundColour = Parent == null ? Color.FromArgb(245, 245, 247) : Parent.BackColor;
+            graphics.Clear(backgroundColour);
+
+            Rectangle outer = new Rectangle(2, 2, Width - 5, Height - 5);
+            Rectangle inner = new Rectangle(7, 7, Width - 15, Height - 15);
+
+            if (isHovered || isSelected || Focused)
+            {
+                Color ringColour = isSelected ? Color.FromArgb(0, 122, 255) : Color.FromArgb(174, 174, 178);
+
+                using (Pen ringPen = new Pen(ringColour, isSelected ? 3F : 2F))
+                {
+                    graphics.DrawEllipse(ringPen, outer);
+                }
+            }
+
+            using (SolidBrush diskBrush = new SolidBrush(diskColour))
+            {
+                graphics.FillEllipse(diskBrush, inner);
+            }
+
+            using (Pen diskBorder = new Pen(Color.FromArgb(210, 210, 215), 1F))
+            {
+                graphics.DrawEllipse(diskBorder, inner);
+            }
         }
     }
 
