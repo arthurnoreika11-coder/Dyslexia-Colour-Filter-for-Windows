@@ -11,6 +11,5 @@ I am building this from lived experience as a dyslexic person who can struggle w
 This is not intended to bypass workplace IT controls. If used on a work laptop, this repository should be shared with IT, security, or workplace adjustments teams for review first.
 
 ## Next Goal:
-#### Paper Like
-Here are the best hex codes to use, categorized by paper type:1. Classic Off-White Paper#F1E9D2 : Classic Parchment#FAF0E6 : Linen (creamy off-white)#FDF5E6: Old Lace#F5F5DC: Beige2. Warm / Aged Paper#F6EEE3: Very light textured paper#E5CBBA: Aged Sandpaper#F5EFDF: Warm yellow paper3. Light Textured Paper#EEE7D7: Textured beige#D9BDA5: Tan paper
+
 
