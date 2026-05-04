@@ -2,7 +2,7 @@
 
 A personal Windows accessibility and legal technology learning project for a subtle coloured screen overlay to support dyslexia, visual stress, and more comfortable on-screen reading.
 
-## The PowerShell C# Approach
+## The C# Approach
 
 macOS includes colour filters in Accessibility settings. Windows has accessibility tooling too, but not custom colour, but this project is a hands-on way to learn Windows desktop development while exploring a practical adjustment that could matter in long reading-heavy work.
 
