@@ -337,7 +337,7 @@ namespace WinForms
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
-            ClientSize = new Size(460, 330);
+            ClientSize = new Size(460, 620);
             BackColor = Color.FromArgb(245, 245, 247);
             Font = new Font("Segoe UI", 9F, FontStyle.Regular);
             TopMost = true;
@@ -389,13 +389,46 @@ namespace WinForms
             ColourDiskButton mintSwatch = CreateSwatchButton("Mint", Color.FromArgb(200, 255, 200), 214, 166);
             ColourDiskButton greySwatch = CreateSwatchButton("Mist", Color.FromArgb(216, 221, 230), 276, 166);
 
+            // Group 1: Classic Off-White Paper
+            Label clasicGroupLabel = CreateSectionLabel("Classic Off-White Paper", 28, 210);
+            Controls.Add(clasicGroupLabel);
+
+            ColourDiskButton classicParchmentSwatch = CreateSwatchButton("Classic Parchment", Color.FromArgb(241, 233, 210), 28, 238);
+            ColourDiskButton linenSwatch = CreateSwatchButton("Linen", Color.FromArgb(250, 240, 230), 90, 238);
+            ColourDiskButton oldLaceSwatch = CreateSwatchButton("Old Lace", Color.FromArgb(253, 245, 230), 152, 238);
+            ColourDiskButton beigeSwitch = CreateSwatchButton("Beige", Color.FromArgb(245, 245, 220), 214, 238);
+
+            // Group 2: Warm / Aged Paper
+            Label agedGroupLabel = CreateSectionLabel("Warm / Aged Paper", 28, 292);
+            Controls.Add(agedGroupLabel);
+
+            ColourDiskButton warmPaperSwatch = CreateSwatchButton("Very Light Textured", Color.FromArgb(246, 238, 227), 28, 320);
+            ColourDiskButton agedSandpaperSwatch = CreateSwatchButton("Aged Sandpaper", Color.FromArgb(229, 203, 186), 90, 320);
+            ColourDiskButton warmYellowSwatch = CreateSwatchButton("Warm Yellow", Color.FromArgb(245, 239, 223), 152, 320);
+
+            // Group 3: Light Textured Paper
+            Label texturedGroupLabel = CreateSectionLabel("Light Textured Paper", 28, 374);
+            Controls.Add(texturedGroupLabel);
+
+            ColourDiskButton texturedBeigeSwatch = CreateSwatchButton("Textured Beige", Color.FromArgb(238, 231, 215), 28, 402);
+            ColourDiskButton tanPaperSwatch = CreateSwatchButton("Tan Paper", Color.FromArgb(217, 189, 165), 90, 402);
+
             swatchButtons = new ColourDiskButton[]
             {
                 creamSwatch,
                 pinkSwatch,
                 blueSwatch,
                 mintSwatch,
-                greySwatch
+                greySwatch,
+                classicParchmentSwatch,
+                linenSwatch,
+                oldLaceSwatch,
+                beigeSwitch,
+                warmPaperSwatch,
+                agedSandpaperSwatch,
+                warmYellowSwatch,
+                texturedBeigeSwatch,
+                tanPaperSwatch
             };
 
             for (int i = 0; i < swatchButtons.Length; i++)
@@ -414,12 +447,12 @@ namespace WinForms
             Controls.Add(colourButton);
 
             // Opacity section header
-            Label opacityLabel = CreateSectionLabel("Opacity", 28, 230);
+            Label opacityLabel = CreateSectionLabel("Opacity", 28, 456);
             Controls.Add(opacityLabel);
 
             // Opacity slider for adjusting transparency
             opacitySlider = new TrackBar();
-            opacitySlider.Location = new Point(28, 256);
+            opacitySlider.Location = new Point(28, 482);
             opacitySlider.Size = new Size(320, 45);
             opacitySlider.Minimum = 10;
             opacitySlider.Maximum = 100;
@@ -429,7 +462,7 @@ namespace WinForms
 
             // Label showing current opacity percentage
             opacityValueLabel = new Label();
-            opacityValueLabel.Location = new Point(366, 262);
+            opacityValueLabel.Location = new Point(366, 488);
             opacityValueLabel.Size = new Size(56, 24);
             opacityValueLabel.TextAlign = ContentAlignment.MiddleRight;
             opacityValueLabel.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
@@ -439,7 +472,7 @@ namespace WinForms
             // Close button
             closeButton = new Button();
             closeButton.Text = "Close";
-            closeButton.Location = new Point(338, 294);
+            closeButton.Location = new Point(338, 570);
             closeButton.Size = new Size(90, 30);
             StylePrimaryButton(closeButton);
             closeButton.Click += CloseButton_Click;
