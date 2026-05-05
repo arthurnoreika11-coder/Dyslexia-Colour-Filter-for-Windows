@@ -331,14 +331,14 @@ namespace WinForms
         {
             this.filterForm = filterForm;
 
-            // Configure the dialog window
+            // Configure the dialog window with Windows 11 styling
             Text = "Dyslexia Colour Filter";
             StartPosition = FormStartPosition.CenterScreen;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
             ClientSize = new Size(460, 620);
-            BackColor = Color.FromArgb(245, 245, 247);
+            BackColor = Color.FromArgb(243, 243, 243);  // Windows 11 light background
             Font = new Font("Segoe UI", 9F, FontStyle.Regular);
             TopMost = true;
 
@@ -355,11 +355,12 @@ namespace WinForms
 
             // Title label
             Label titleLabel = CreateLabel("Dyslexia Colour Filter", 28, 22, 300, 30, 15F, FontStyle.Bold);
+            titleLabel.ForeColor = Color.FromArgb(31, 31, 31);  // Windows 11 dark text
             Controls.Add(titleLabel);
 
             // Introductory description label
             Label introLabel = CreateLabel("Choose a comfortable tint and strength for reading.", 28, 54, 380, 22, 9F, FontStyle.Regular);
-            introLabel.ForeColor = Color.FromArgb(110, 110, 115);
+            introLabel.ForeColor = Color.FromArgb(115, 115, 115);  // Windows 11 secondary text
             Controls.Add(introLabel);
 
             // Enable/disable checkbox
@@ -367,7 +368,9 @@ namespace WinForms
             enabledCheckBox.Text = "Enabled";
             enabledCheckBox.Location = new Point(28, 92);
             enabledCheckBox.AutoSize = true;
-            enabledCheckBox.FlatStyle = FlatStyle.System;
+            enabledCheckBox.FlatStyle = FlatStyle.Flat;
+            enabledCheckBox.ForeColor = Color.FromArgb(31, 31, 31);
+            enabledCheckBox.BackColor = Color.FromArgb(243, 243, 243);
             enabledCheckBox.CheckedChanged += EnabledCheckBox_CheckedChanged;
             Controls.Add(enabledCheckBox);
 
@@ -379,7 +382,8 @@ namespace WinForms
             colourPreview = new Panel();
             colourPreview.Location = new Point(380, 128);
             colourPreview.Size = new Size(42, 28);
-            colourPreview.BorderStyle = BorderStyle.FixedSingle;
+            colourPreview.BorderStyle = BorderStyle.None;
+            colourPreview.BackColor = filterForm.FilterColour;
             Controls.Add(colourPreview);
 
             // Create preset color swatch buttons
@@ -439,7 +443,7 @@ namespace WinForms
             // Custom color picker button
             colourButton = new Button();
             colourButton.Text = "Custom";
-            colourButton.Location = new Point(356, 171);
+            colourButton.Location = new Point(356, 173);
             colourButton.Size = new Size(72, 32);
             StyleSecondaryButton(colourButton);
             colourButton.Click += ColourButton_Click;
@@ -466,14 +470,15 @@ namespace WinForms
             opacityValueLabel.Size = new Size(56, 24);
             opacityValueLabel.TextAlign = ContentAlignment.MiddleRight;
             opacityValueLabel.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
-            opacityValueLabel.ForeColor = Color.FromArgb(29, 29, 31);
+            opacityValueLabel.ForeColor = Color.FromArgb(0, 120, 215);  // Windows 11 accent blue for emphasis
+            opacityValueLabel.BackColor = Color.FromArgb(243, 243, 243);
             Controls.Add(opacityValueLabel);
 
             // Close button
             closeButton = new Button();
             closeButton.Text = "Close";
-            closeButton.Location = new Point(338, 570);
-            closeButton.Size = new Size(90, 30);
+            closeButton.Location = new Point(338, 568);
+            closeButton.Size = new Size(90, 34);
             StylePrimaryButton(closeButton);
             closeButton.Click += CloseButton_Click;
             Controls.Add(closeButton);
@@ -558,7 +563,8 @@ namespace WinForms
             label.Location = new Point(x, y);
             label.Size = new Size(width, height);
             label.Font = new Font("Segoe UI", size, style);
-            label.ForeColor = Color.FromArgb(29, 29, 31);
+            label.ForeColor = Color.FromArgb(31, 31, 31);  // Windows 11 dark text
+            label.BackColor = Color.FromArgb(243, 243, 243);  // Transparent against form background
             return label;
         }
 
@@ -568,7 +574,7 @@ namespace WinForms
         private Label CreateSectionLabel(string text, int x, int y)
         {
             Label label = CreateLabel(text, x, y, 160, 22, 9.5F, FontStyle.Bold);
-            label.ForeColor = Color.FromArgb(72, 72, 74);
+            label.ForeColor = Color.FromArgb(31, 31, 31);  // Windows 11 dark text
             return label;
         }
 
@@ -590,30 +596,36 @@ namespace WinForms
         }
 
         /// <summary>
-        /// Styles a button with primary appearance (blue background, white text).
+        /// Styles a button with primary appearance (Windows 11 blue background, white text).
         /// </summary>
         private void StylePrimaryButton(Button button)
         {
             button.FlatStyle = FlatStyle.Flat;
-            button.BackColor = Color.FromArgb(0, 122, 255);
+            button.BackColor = Color.FromArgb(0, 120, 215);  // Windows 11 accent blue
             button.ForeColor = Color.White;
             button.FlatAppearance.BorderSize = 0;
-            button.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            button.FlatAppearance.MouseOverBackColor = Color.FromArgb(0, 100, 200);  // Darker blue on hover
+            button.FlatAppearance.MouseDownBackColor = Color.FromArgb(0, 80, 160);   // Even darker on click
+            button.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
             button.Cursor = Cursors.Hand;
+            button.Height = 34;  // Better vertical padding
         }
 
         /// <summary>
-        /// Styles a button with secondary appearance (white background, blue text, blue border).
+        /// Styles a button with secondary appearance (light background, blue text, subtle border).
         /// </summary>
         private void StyleSecondaryButton(Button button)
         {
             button.FlatStyle = FlatStyle.Flat;
-            button.BackColor = Color.White;
-            button.ForeColor = Color.FromArgb(0, 122, 255);
-            button.FlatAppearance.BorderColor = Color.FromArgb(210, 210, 215);
+            button.BackColor = Color.FromArgb(243, 243, 243);  // Windows 11 light background
+            button.ForeColor = Color.FromArgb(0, 120, 215);    // Windows 11 accent blue
+            button.FlatAppearance.BorderColor = Color.FromArgb(204, 204, 204);  // Subtle border
             button.FlatAppearance.BorderSize = 1;
-            button.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            button.FlatAppearance.MouseOverBackColor = Color.FromArgb(237, 237, 237);  // Lighter on hover
+            button.FlatAppearance.MouseDownBackColor = Color.FromArgb(225, 225, 225);  // More pressed
+            button.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
             button.Cursor = Cursors.Hand;
+            button.Height = 32;  // Better vertical padding
         }
 
         /// <summary>
@@ -775,8 +787,8 @@ namespace WinForms
             Graphics graphics = pevent.Graphics;
             graphics.SmoothingMode = SmoothingMode.AntiAlias;  // Enable smooth anti-aliased drawing
             
-            // Get background color from parent or use default
-            Color backgroundColour = Parent == null ? Color.FromArgb(245, 245, 247) : Parent.BackColor;
+            // Get background color from parent or use default (Windows 11 light)
+            Color backgroundColour = Parent == null ? Color.FromArgb(243, 243, 243) : Parent.BackColor;
             graphics.Clear(backgroundColour);
 
             // Rectangle for the outer ring (for selection/hover indicator)
@@ -787,8 +799,8 @@ namespace WinForms
             // Draw selection or hover ring if the button is selected, hovered, or focused
             if (isHovered || isSelected || Focused)
             {
-                // Blue ring for selected state, gray ring for hover/focus
-                Color ringColour = isSelected ? Color.FromArgb(0, 122, 255) : Color.FromArgb(174, 174, 178);
+                // Windows 11 accent blue for selected state, gray ring for hover/focus
+                Color ringColour = isSelected ? Color.FromArgb(0, 120, 215) : Color.FromArgb(163, 163, 163);
                 // Thicker pen for selection (3px), thinner for hover (2px)
                 using (Pen ringPen = new Pen(ringColour, isSelected ? 3F : 2F))
                 {
@@ -803,7 +815,7 @@ namespace WinForms
             }
 
             // Draw a thin border around the disk
-            using (Pen diskBorder = new Pen(Color.FromArgb(210, 210, 215), 1F))
+            using (Pen diskBorder = new Pen(Color.FromArgb(204, 204, 204), 1F))
             {
                 graphics.DrawEllipse(diskBorder, inner);
             }
