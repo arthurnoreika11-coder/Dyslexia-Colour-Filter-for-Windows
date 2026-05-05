@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -75,21 +76,75 @@ namespace WinForms
         /// </summary>
         private void CreateTrayIcon()
         {
-            enabledMenuItem = new MenuItem("Enabled", ToggleEnabled);
+            enabledMenuItem = new MenuItem("Toggle Overlay", ToggleEnabled);
             enabledMenuItem.Checked = startEnabled;
 
             ContextMenu trayMenu = new ContextMenu();
             trayMenu.MenuItems.Add("Settings...", ShowSettings);
             trayMenu.MenuItems.Add("-");
+            trayMenu.MenuItems.Add("Reset to Default", ResetToDefault);
             trayMenu.MenuItems.Add(enabledMenuItem);
             trayMenu.MenuItems.Add("-");
             trayMenu.MenuItems.Add("Exit", ExitApp);
 
             trayIcon = new NotifyIcon();
-            trayIcon.Icon = SystemIcons.Application;
-            trayIcon.Text = "Dyslexia Colour Filter";
+            trayIcon.Icon = CreateFilterIcon(selectedColour);
+            string initialStatus = startEnabled ? "Enabled" : "Disabled";
+            trayIcon.Text = $"Dyslexia Colour Filter - {initialStatus}, {ColorTranslator.ToHtml(selectedColour)}, {OpacityPercent}%";
             trayIcon.ContextMenu = trayMenu;
             trayIcon.Visible = true;
+        }
+
+        /// <summary>
+        /// Creates a custom tray icon representing the current filter color.
+        /// </summary>
+        private Icon CreateFilterIcon(Color color)
+        {
+            // Create a 16x16 bitmap for the icon
+            Bitmap bitmap = new Bitmap(16, 16, PixelFormat.Format32bppArgb);
+            using (Graphics g = Graphics.FromImage(bitmap))
+            {
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.Clear(Color.Transparent);
+
+                // Draw a circle filled with the filter color
+                using (SolidBrush brush = new SolidBrush(color))
+                {
+                    g.FillEllipse(brush, 2, 2, 12, 12);
+                }
+
+                // Draw a subtle border
+                using (Pen pen = new Pen(Color.FromArgb(100, 0, 0, 0), 1))
+                {
+                    g.DrawEllipse(pen, 2, 2, 11, 11);
+                }
+            }
+
+            // Convert bitmap to icon
+            return Icon.FromHandle(bitmap.GetHicon());
+        }
+
+        /// <summary>
+        /// Updates the tray icon to reflect the current filter color.
+        /// </summary>
+        private void UpdateTrayIcon()
+        {
+            if (trayIcon != null)
+            {
+                trayIcon.Icon = CreateFilterIcon(selectedColour);
+            }
+        }
+
+        /// <summary>
+        /// Updates the tray icon tooltip to show current settings.
+        /// </summary>
+        private void UpdateTrayText()
+        {
+            if (trayIcon != null)
+            {
+                string status = FilterEnabled ? "Enabled" : "Disabled";
+                trayIcon.Text = $"Dyslexia Colour Filter - {status}, {ColorTranslator.ToHtml(selectedColour)}, {OpacityPercent}%";
+            }
         }
 
         /// <summary>
@@ -98,6 +153,16 @@ namespace WinForms
         private void ToggleEnabled(object sender, EventArgs e)
         {
             SetEnabled(!enabledMenuItem.Checked);
+        }
+
+        /// <summary>
+        /// Resets the filter to default settings (cream color, 50% opacity, enabled).
+        /// </summary>
+        private void ResetToDefault(object sender, EventArgs e)
+        {
+            SetFilterColour(Color.FromArgb(255, 242, 168)); // Default cream color
+            SetOpacityPercent(50);
+            SetEnabled(true);
         }
 
         /// <summary>
@@ -155,6 +220,8 @@ namespace WinForms
             selectedColour = colour;
             ApplySettings();
             SaveSettings();
+            UpdateTrayIcon();
+            UpdateTrayText();
         }
 
         /// <summary>
@@ -173,6 +240,7 @@ namespace WinForms
 
             Opacity = percent / 100.0;
             SaveSettings();
+            UpdateTrayText();
         }
 
         /// <summary>
@@ -183,6 +251,7 @@ namespace WinForms
             enabledMenuItem.Checked = enabled;
             Visible = enabled;
             SaveSettings();
+            UpdateTrayText();
         }
 
         /// <summary>
