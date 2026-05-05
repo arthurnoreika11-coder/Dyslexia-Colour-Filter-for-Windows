@@ -1,0 +1,5 @@
+# Build logs
+build_log.txt
+
+# Optional: comment out the line below if you don't want to commit the exe
+# WinForms/bin/

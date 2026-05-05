@@ -1,18 +1,30 @@
 # Build script for Dyslexia Color Filter
-$outputDir = "WinForms\bin"
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+Set-Location $scriptDir
+
+$outputDir = "$scriptDir\WinForms\bin"
 $outputFile = "$outputDir\DyslexiaFilter.exe"
+$sourceFile = "$scriptDir\WinForms\winForms.cs"
 
 if (!(Test-Path $outputDir)) {
     New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
 }
 
-Write-Host "Compiling Dyslexia Color Filter..."
-csc /target:winexe /out:$outputFile WinForms/winForms.cs
+$csc = "$env:WINDIR\Microsoft.NET\Framework\v4.0.30319\csc.exe"
 
-if ($?) {
-    Write-Host "✓ Build successful: $outputFile" -ForegroundColor Green
+Write-Host "Compiling..."
+
+& $csc /target:winexe `
+       /out:$outputFile `
+       /r:System.dll `
+       /r:System.Windows.Forms.dll `
+       /r:System.Drawing.dll `
+       $sourceFile
+
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "SUCCESS: $outputFile" -ForegroundColor Green
 } else {
-    Write-Host "✗ Build failed" -ForegroundColor Red
+    Write-Host "FAILED" -ForegroundColor Red
 }
 
-Read-Host -Prompt "Press Enter to close"
+Read-Host "Press Enter to close"

@@ -72,6 +72,21 @@ namespace WinForms
         }
 
         /// <summary>
+        /// Reapplies click-through window styles whenever the overlay becomes visible,
+        /// since showing/hiding a form can reset extended window styles.
+        /// </summary>
+        protected override void OnVisibleChanged(EventArgs e)
+        {
+            base.OnVisibleChanged(e);
+            if (Visible && Handle != IntPtr.Zero)
+            {
+                int style = GetWindowLong(Handle, GwlExStyle);
+                style = style | WsExLayered | WsExTransparent | WsExToolWindow;
+                SetWindowLong(Handle, GwlExStyle, style);
+            }
+        }
+
+        /// <summary>
         /// Creates the system tray icon with context menu for enabling/disabling the filter and accessing settings.
         /// </summary>
         private void CreateTrayIcon()
@@ -90,7 +105,7 @@ namespace WinForms
             trayIcon = new NotifyIcon();
             trayIcon.Icon = CreateFilterIcon(selectedColour);
             string initialStatus = startEnabled ? "Enabled" : "Disabled";
-            trayIcon.Text = $"Dyslexia Colour Filter - {initialStatus}, {ColorTranslator.ToHtml(selectedColour)}, {OpacityPercent}%";
+            trayIcon.Text = string.Format("Dyslexia Colour Filter - {0}, {1}, {2}%", initialStatus, ColorTranslator.ToHtml(selectedColour), OpacityPercent);
             trayIcon.ContextMenu = trayMenu;
             trayIcon.Visible = true;
         }
@@ -143,7 +158,7 @@ namespace WinForms
             if (trayIcon != null)
             {
                 string status = FilterEnabled ? "Enabled" : "Disabled";
-                trayIcon.Text = $"Dyslexia Colour Filter - {status}, {ColorTranslator.ToHtml(selectedColour)}, {OpacityPercent}%";
+                trayIcon.Text = string.Format("Dyslexia Colour Filter - {0}, {1}, {2}%", status, ColorTranslator.ToHtml(selectedColour), OpacityPercent);
             }
         }
 
