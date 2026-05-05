@@ -315,12 +315,16 @@ namespace WinForms
         private ColourFilterForm filterForm;                 // Reference to the main filter form
         private CheckBox enabledCheckBox;                    // Checkbox to enable/disable the filter
         private Button colourButton;                         // Button to open custom color picker
+        private Button applyButton;                          // Button to apply the selected color
         private Button closeButton;                          // Button to close the settings window
         private Panel colourPreview;                         // Panel showing the current tint color preview
+        private Panel textPreviewPanel;                      // Panel showing sample text with color overlay
+        private Label textPreviewLabel;                      // Label with sample text inside preview panel
         private TrackBar opacitySlider;                      // Slider for controlling filter opacity
         private Label opacityValueLabel;                     // Shows current opacity percentage
         private ColourDiskButton[] swatchButtons;            // Array of preset color swatch buttons
         private ToolTip toolTip;                             // Tooltips for UI elements
+        private Color previewColour;                         // Tracks the color being previewed before applying
         private bool isLoading;                              // Flag to prevent events during initialization
         private bool allowClose;                             // Flag to allow closing via Close() method
 
@@ -337,7 +341,7 @@ namespace WinForms
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
-            ClientSize = new Size(460, 620);
+            ClientSize = new Size(460, 680);
             BackColor = Color.FromArgb(243, 243, 243);  // Windows 11 light background
             Font = new Font("Segoe UI", 9F, FontStyle.Regular);
             TopMost = true;
@@ -474,10 +478,44 @@ namespace WinForms
             opacityValueLabel.BackColor = Color.FromArgb(243, 243, 243);
             Controls.Add(opacityValueLabel);
 
+            // Preview section header
+            Label previewLabel = CreateSectionLabel("Preview", 28, 530);
+            Controls.Add(previewLabel);
+
+            // Text preview panel showing the color overlay effect
+            textPreviewPanel = new Panel();
+            textPreviewPanel.Location = new Point(28, 556);
+            textPreviewPanel.Size = new Size(400, 50);
+            textPreviewPanel.BorderStyle = BorderStyle.None;
+            textPreviewPanel.BackColor = filterForm.FilterColour;
+            Controls.Add(textPreviewPanel);
+
+            // Sample text label inside the preview panel
+            textPreviewLabel = new Label();
+            textPreviewLabel.Text = "The quick brown fox jumps over the lazy dog";
+            textPreviewLabel.Location = new Point(0, 0);
+            textPreviewLabel.Size = new Size(400, 50);
+            textPreviewLabel.TextAlign = ContentAlignment.MiddleLeft;
+            textPreviewLabel.Font = new Font("Segoe UI", 11F, FontStyle.Regular);
+            textPreviewLabel.ForeColor = Color.FromArgb(31, 31, 31);  // Dark text for contrast
+            textPreviewLabel.BackColor = Color.Transparent;
+            textPreviewLabel.Padding = new Padding(8, 0, 0, 0);
+            textPreviewPanel.Controls.Add(textPreviewLabel);
+
+            // Apply button
+            applyButton = new Button();
+            applyButton.Text = "Apply";
+            applyButton.Location = new Point(238, 630);
+            applyButton.Size = new Size(90, 34);
+            StylePrimaryButton(applyButton);
+            applyButton.Click += ApplyButton_Click;
+            toolTip.SetToolTip(applyButton, "Apply colour to overlay");
+            Controls.Add(applyButton);
+
             // Close button
             closeButton = new Button();
             closeButton.Text = "Close";
-            closeButton.Location = new Point(338, 568);
+            closeButton.Location = new Point(338, 630);
             closeButton.Size = new Size(90, 34);
             StylePrimaryButton(closeButton);
             closeButton.Click += CloseButton_Click;
@@ -491,7 +529,9 @@ namespace WinForms
         {
             isLoading = true;
             enabledCheckBox.Checked = filterForm.FilterEnabled;
+            previewColour = filterForm.FilterColour;
             colourPreview.BackColor = filterForm.FilterColour;
+            textPreviewPanel.BackColor = previewColour;
             opacitySlider.Value = filterForm.OpacityPercent;
             UpdateOpacityLabel();
             UpdateSelectedSwatch();
@@ -517,13 +557,13 @@ namespace WinForms
         private void ColourButton_Click(object sender, EventArgs e)
         {
             ColorDialog colourDialog = new ColorDialog();
-            colourDialog.Color = filterForm.FilterColour;
+            colourDialog.Color = previewColour;
             colourDialog.FullOpen = true;
 
             if (colourDialog.ShowDialog(this) == DialogResult.OK)
             {
-                colourPreview.BackColor = colourDialog.Color;
-                filterForm.SetFilterColour(colourDialog.Color);
+                previewColour = colourDialog.Color;
+                textPreviewPanel.BackColor = previewColour;
                 UpdateSelectedSwatch();
             }
 
@@ -640,9 +680,8 @@ namespace WinForms
                 return;
             }
 
-            Color colour = (Color)button.Tag;
-            colourPreview.BackColor = colour;
-            filterForm.SetFilterColour(colour);
+            previewColour = (Color)button.Tag;
+            textPreviewPanel.BackColor = previewColour;
             UpdateSelectedSwatch();
         }
 
@@ -656,12 +695,10 @@ namespace WinForms
                 return;
             }
 
-            Color selected = filterForm.FilterColour;
-
             for (int i = 0; i < swatchButtons.Length; i++)
             {
                 Color swatchColour = (Color)swatchButtons[i].Tag;
-                swatchButtons[i].IsSelected = swatchColour.ToArgb() == selected.ToArgb();
+                swatchButtons[i].IsSelected = swatchColour.ToArgb() == previewColour.ToArgb();
             }
         }
 
@@ -671,6 +708,15 @@ namespace WinForms
         private void CloseButton_Click(object sender, EventArgs e)
         {
             Hide();
+        }
+
+        /// <summary>
+        /// Event handler for the apply button. Applies the preview color to the main filter overlay.
+        /// </summary>
+        private void ApplyButton_Click(object sender, EventArgs e)
+        {
+            colourPreview.BackColor = previewColour;
+            filterForm.SetFilterColour(previewColour);
         }
 
         /// <summary>
