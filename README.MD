@@ -13,6 +13,7 @@ This is not intended to bypass workplace IT controls. If used on a work laptop, 
 ## Building & Compilation
 
 ### Quick Build with PowerShell
+NOTE: Currently in /winForm/bin there is an .exe compiled on 05/05/2026 at 1930(ish). 
 
 Run the included build script:
 
