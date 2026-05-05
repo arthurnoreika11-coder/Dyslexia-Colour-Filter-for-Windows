@@ -10,5 +10,39 @@ I am building this from lived experience as a dyslexic person who can struggle w
 
 This is not intended to bypass workplace IT controls. If used on a work laptop, this repository should be shared with IT, security, or workplace adjustments teams for review first.
 
+## Building & Compilation
+
+### Quick Build with PowerShell
+
+Run the included build script:
+
+```powershell
+.\Build.ps1
+```
+
+This will:
+- Create the `WinForms\bin` output directory
+- Compile the C# code to `WinForms\bin\DyslexiaFilter.exe`
+- Show a success or error message
+
+**Note:** If you encounter an execution policy error, run this first:
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
+```
+
+### Manual Compilation
+
+If you prefer to compile manually, use the C# compiler:
+
+```bash
+csc /target:winexe /out:WinForms\bin\DyslexiaFilter.exe WinForms\winForms.cs
+```
+
+Or with .NET SDK:
+
+```bash
+dotnet build -c Release
+```
+
 ## Next Goal:
 
