@@ -14,3 +14,5 @@ if ($?) {
 } else {
     Write-Host "✗ Build failed" -ForegroundColor Red
 }
+
+Read-Host -Prompt "Press Enter to close"
